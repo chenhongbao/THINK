@@ -6,10 +6,8 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/jsonb">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
+	<classpathentry kind="lib" path="lib/jakarta.json-1.1.6.jar" sourcepath="lib/jakarta.json-api-1.1.6-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jakarta.json.bind-api-1.0.2.jar" sourcepath="lib/jakarta.json.bind-api-1.0.2-sources.jar"/>
+	<classpathentry kind="lib" path="lib/yasson-1.0.7.jar" sourcepath="lib/yasson-1.0.7-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

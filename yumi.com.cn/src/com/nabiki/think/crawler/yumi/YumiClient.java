@@ -1,9 +1,6 @@
 package com.nabiki.think.crawler.yumi;
 
 import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
-import javax.json.bind.config.PropertyNamingStrategy;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -18,9 +15,7 @@ import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-import com.nabiki.think.crawler.yumi.api.QueryResponse;
-import com.nabiki.think.crawler.yumi.impl.QueryResponseImpl;
-import com.nabiki.think.crawler.yumi.impl.QueryResultImpl;
+import com.nabiki.think.crawler.yumi.data.QueryResponse;
 
 public class YumiClient {
 	private String url = "https://trade.yumi.com.cn/data/query/item/data/queryItemData?&startTime=&endTime=&queryId=";
@@ -28,16 +23,12 @@ public class YumiClient {
 	private final HttpClient client;
 	private final Jsonb json;
 	
-	public YumiClient() {
+	public YumiClient(QueryResultIO io) {
 		this.client = HttpClient.newBuilder()
                 .sslContext(sslContext())
                 .followRedirects(HttpClient.Redirect.ALWAYS)
                 .build();
-        JsonbConfig config = new JsonbConfig()
-                .withPropertyNamingStrategy(PropertyNamingStrategy.IDENTITY)
-                .withFormatting(true)
-                .withNullValues(true);
-        this.json = JsonbBuilder.create(config);
+		this.json = io.jsonb();
 	}
 	
 	public QueryResponse query(int queryId) {
@@ -47,9 +38,9 @@ public class YumiClient {
 		
 		try {
 			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-			var r = this.json.fromJson(response.body(), QueryResponseImpl.class);
+			var r = this.json.fromJson(response.body(), QueryResponse.class);
 			// Set query id to type.
-			((QueryResultImpl)r.result()).type = Integer.toString(queryId);
+			r.result.type = Integer.toString(queryId);
 			return r;
 		} catch (IOException | InterruptedException e) {
 			return null;
