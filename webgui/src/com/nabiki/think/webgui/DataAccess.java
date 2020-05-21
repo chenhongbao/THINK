@@ -11,11 +11,15 @@ public class DataAccess {
 	}
 	
 	public ConcurrentHashMap<Integer, QueryResult> yumi() {
-		return this.yumiRes;
+		synchronized(this) {
+			return this.yumiRes;
+		}
 	}
 	
 	public void yumi(ConcurrentHashMap<Integer, QueryResult> m) {
-		this.yumiRes.clear();
-		this.yumiRes.putAll(m);
+		synchronized(this) {
+			this.yumiRes.clear();
+			this.yumiRes.putAll(m);
+		}
 	}
 }
