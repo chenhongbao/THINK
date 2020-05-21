@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
@@ -60,14 +58,6 @@ public class QueryResultIO {
 		}
 		else
 			return jsonb().fromJson(str, QueryResult.class);
-	}
-	
-	public Map<Integer, QueryResult> read() throws IOException {
-		var m = new HashMap<Integer, QueryResult>();
-		for (var id : Utils.ids)
-			m.put(id, read(id));
-		
-		return m;
 	}
 
 	private File file(int queryId) throws IOException {

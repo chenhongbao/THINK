@@ -9,8 +9,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
 
-import com.nabiki.think.crawler.yumi.Utils;
-
 @WebFilter(urlPatterns = {"/yumi"})
 public class QueryFilter implements Filter {
 
@@ -20,12 +18,7 @@ public class QueryFilter implements Filter {
 		var param = request.getParameter("queryId");
 		
 		try {
-			var queryId = Integer.valueOf(param);
-			if (!Utils.ids.contains(queryId)) {
-				System.err.println("Unknown query ID: " + param);
-				return;
-			}
-			
+			Integer.parseInt(param);		
 			chain.doFilter(request, response);
 		} catch (NumberFormatException e) {
 			System.err.println("Bad query ID format: " + param + ". " + e.getMessage());

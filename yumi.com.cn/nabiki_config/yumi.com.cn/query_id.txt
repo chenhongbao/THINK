@@ -1,0 +1,129 @@
+# Average spot price.
+2075
+
+# Dutiable price of American corn.
+461
+
+# DCE corn.
+2213
+2214
+2215
+2216
+2217
+2218
+2219
+
+# Heilongjiang buy price.
+224
+225
+226
+227
+228
+229
+230
+231
+
+# Jilin buy price.
+232
+233
+234
+235
+236
+237
+238
+239
+240
+
+# Liaoning buy price.
+241
+242
+
+# Neimenggu buy price.
+223
+
+# Shandong buy price.
+2078
+220
+514
+515
+
+# Henan buy price.
+210
+211
+212
+213
+
+# Hebei buy price.
+202
+203
+204
+205
+207
+208
+209
+
+# Anhui buy price.
+217
+
+# Shanxi buy price.
+197
+200
+201
+517
+
+# Hanzhong buy price.
+192
+194
+
+# Xinjiang buy price.
+184
+185
+
+# Heilongjiang sell price.
+165
+166
+167
+168
+169
+170
+171
+172
+
+# Jilin sell price.
+173
+174
+175
+176
+177
+178
+179
+180
+181
+
+# Liaoning sell price.
+182
+183
+
+# Neimenggu sell price.
+164
+
+# On-port buy price.
+160
+161
+162
+163
+
+# On-port inventory price.
+149
+150
+151
+152
+
+# On-port trade price.	
+153
+154
+155
+156
+157
+158
+159

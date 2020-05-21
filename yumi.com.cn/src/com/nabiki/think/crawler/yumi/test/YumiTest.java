@@ -8,7 +8,7 @@ import com.nabiki.think.crawler.yumi.Yumi;
 public class YumiTest {
 	public static void main(String[] args) {
 		try {
-			new Yumi(Path.of("./", "data")).run();
+			new Yumi(Path.of("")).run();
 		} catch (IOException e) {
 			e.printStackTrace();
 			e.getCause().printStackTrace();

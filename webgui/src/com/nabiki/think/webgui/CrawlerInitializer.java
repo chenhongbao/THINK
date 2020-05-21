@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalTime;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -17,7 +16,6 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
 import com.nabiki.think.crawler.yumi.Yumi;
-import com.nabiki.think.crawler.yumi.data.QueryResult;
 
 @WebListener
 public class CrawlerInitializer implements ServletContextListener {
@@ -58,7 +56,12 @@ public class CrawlerInitializer implements ServletContextListener {
 				return;
 			
 			// Load old data for the first run.
-			setDa();
+			try {
+				this.da.yumi(this.yumi.read());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
 			// Log activity.
 			System.out.println("Start fetching data from yumi.com.cn.");
 			
@@ -71,20 +74,7 @@ public class CrawlerInitializer implements ServletContextListener {
 			// Log activity.
 			System.out.println("End fetching data.");
 			// Set new data into data access.
-			setDa();
-		}
-		
-		private void setDa() {
-			var m = new ConcurrentHashMap<Integer, QueryResult>();
-			try {
-				var results = this.yumi.io().read();
-				for (var key : results.keySet())
-					m.put(key, results.get(key));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
-			this.da.yumi(m);
+			this.da.yumi(this.yumi.lastQuery());
 		}
 	}
 	
@@ -96,7 +86,7 @@ public class CrawlerInitializer implements ServletContextListener {
 	public CrawlerInitializer() {
 		try {
 			if (this.yumi == null)
-				this.yumi = new Yumi(Path.of(".", "data"));
+				this.yumi = new Yumi(Path.of(""));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
