@@ -1,7 +1,6 @@
 package com.nabiki.think.webgui.servlets;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.charset.Charset;
 
 import javax.json.bind.Jsonb;
@@ -15,7 +14,7 @@ import com.nabiki.think.crawler.yumi.data.QueryResult;
 import com.nabiki.think.webgui.DataAccess;
 
 @WebServlet(urlPatterns = {"/yumi"})
-public class QueryServlet extends HttpServlet {
+public class QueryYumi extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	@Override
@@ -28,24 +27,28 @@ public class QueryServlet extends HttpServlet {
 		var jsonb = (Jsonb)req.getServletContext().getAttribute("Jsonb");
 		
 		if (jsonb == null || da == null) {
-			writeError(resp.getWriter());
 			System.err.println("Attribute null pointer.");
-			return;
+			// Set error info.
+			req.setAttribute("name", "data object null pointer");
+			req.setAttribute("type", "internal error");
+			// Forward.
+			req.getRequestDispatcher("/error").forward(req, resp);
+		} else {
+			QueryResult res = da.yumi().get(Integer.valueOf(req.getParameter("queryId")));
+			if (res == null) {
+				System.err.println("Unknown query ID");
+				// Set unknown query ID.
+				req.setAttribute("name", "unknown query id");
+				req.setAttribute("type", "invalid parameter");
+				// Forward.
+				req.getRequestDispatcher("/error").forward(req, resp);
+			} else {
+				var str = jsonb.toJson(res);
+				resp.getOutputStream().write(str.getBytes(Charset.forName("UTF-8")));
+				resp.getOutputStream().flush();
+			}
 		}
-		
-		QueryResult res = da.yumi().get(Integer.valueOf(req.getParameter("queryId")));
-		if (res == null) {
-			writeError(resp.getWriter());
-			System.err.println("Query result null pointer.");
-			return;
-		}
-		
-		var str = jsonb.toJson(res);
-		resp.getOutputStream().write(str.getBytes(Charset.forName("UTF-8")));
-		resp.getOutputStream().flush();
 	}
 	
-	private void writeError(PrintWriter pw) {
-		pw.write("{\"name\":\"error\", \"type\": null, \"list\":[]}");
-	}
+
 }

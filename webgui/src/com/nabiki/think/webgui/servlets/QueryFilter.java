@@ -9,7 +9,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
 
-@WebFilter(urlPatterns = {"/yumi"})
+@WebFilter(urlPatterns = {"/yumi", "/catalog"})
 public class QueryFilter implements Filter {
 
 	@Override
@@ -18,7 +18,8 @@ public class QueryFilter implements Filter {
 		var param = request.getParameter("queryId");
 		
 		try {
-			Integer.parseInt(param);		
+			// Validate query ID, must be integer number.
+			Integer.parseInt(param);
 			chain.doFilter(request, response);
 		} catch (NumberFormatException e) {
 			System.err.println("Bad query ID format: " + param + ". " + e.getMessage());
