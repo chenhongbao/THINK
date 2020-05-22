@@ -14,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 
 import com.nabiki.think.crawler.yumi.data.QueryResponse;
 
@@ -26,6 +27,7 @@ public class YumiClient {
 	public YumiClient(QueryResultIO io) {
 		this.client = HttpClient.newBuilder()
                 .sslContext(sslContext())
+                .connectTimeout(Duration.ofSeconds(15))
                 .followRedirects(HttpClient.Redirect.ALWAYS)
                 .build();
 		this.json = io.jsonb();
