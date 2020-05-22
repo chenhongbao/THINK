@@ -2,8 +2,6 @@ package com.nabiki.think.webgui.servlets;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.LinkedList;
-import java.util.List;
 
 import javax.json.bind.Jsonb;
 import javax.servlet.ServletException;
@@ -35,29 +33,10 @@ public class QueryCatalog extends HttpServlet {
 			// Forward.
 			req.getRequestDispatcher("/error").forward(req, resp);
 		} else {
-			var m = da.yumi();
-			var c = new Catalog();
-			for (var key : m.keySet())
-				c.list.add(new ValuePair(key, m.get(key).name));
-			
+			var c = da.catalog();
 			// Send catalog as JSON.
 			resp.getOutputStream().write(jsonb.toJson(c).getBytes(Charset.forName("UTF-8")));
 			resp.getOutputStream().flush();
 		}
-	}
-	
-	public class ValuePair {
-		public int key;
-		public String value;
-		public ValuePair(int key, String value) {
-			this.key = key;
-			this.value = value;
-		}
-	}
-	
-	public class Catalog {
-		public List<ValuePair> list = new LinkedList<>();
-		
-		public Catalog() {}
 	}
 }

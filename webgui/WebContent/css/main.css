@@ -1,0 +1,43 @@
+body {
+    font-size: 16px;
+}
+
+ul {
+    padding: 0 0 0 15px;
+    margin: 0;
+}
+
+a {
+    text-decoration:none;
+}
+
+.section_container {
+    margin: 0 auto;
+    max-width: 80%;
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.price_section {
+    min-width: 250px;
+    margin: 25px 25px;
+}
+
+.price_section_title {
+    font-weight: bold;
+}
+
+.index_title, .chart_title {
+    font-size: 32px;
+    margin: 0 auto 10px auto;
+}
+
+.index_update_time, .chart_subtitle {
+    font-size: 16px;
+}
+
+.chart {
+    width: 70%;
+    height:600px;
+    margin: 0 auto;
+}

@@ -4,12 +4,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 import javax.json.bind.config.PropertyNamingStrategy;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -38,10 +42,61 @@ public class CrawlerInitializer implements ServletContextListener {
 		}
 	}
 	
+	class CrawlerTask implements Runnable {
+		private final Yumi yumi;
+		private final DataAccess da;
+		
+		CrawlerTask(Yumi yumi, DataAccess da) {
+			this.yumi = yumi;
+			this.da = da;
+		}
+
+		@Override
+		public void run() {
+			// Don't fetch data at night.
+			var now = LocalTime.now();
+			if (23 <= now.getHour() || now.getHour() < 6)
+				return;
+			
+			// Load old data for the first run.
+			try {
+				this.da.yumi(this.yumi.read());
+				setTimeStamp();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			// Log activity.
+			System.out.println("Start fetching data from yumi.com.cn.");
+			
+			try {
+				yumi.run();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			// Log activity.
+			System.out.println("End fetching data.");
+			// Set new data into data access.
+			this.da.yumi(this.yumi.lastQuery());
+			
+			// Set last update time.
+			setTimeStamp();
+		}
+		
+		private void setTimeStamp() {
+			var timeStamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("更新于yyyy年M月d日H时m分s秒"));
+			context.setAttribute("UpdateTime", timeStamp);
+		}
+	}
+	
 	private Yumi yumi;
 	private final DataAccess da;
 	private final CrawlerTask task;
 	private final ScheduledThreadPoolExecutor executor;
+	
+	// Servlet context.
+	private ServletContext context;
 	
 	public CrawlerInitializer() {
 		try {
@@ -64,15 +119,17 @@ public class CrawlerInitializer implements ServletContextListener {
 		this.executor.scheduleAtFixedRate(this.task, 0, 1, TimeUnit.HOURS);
 		
 		// Register data object.
-		var ctx = sce.getServletContext();
-		ctx.setAttribute("DataAccess", this.da);
+		this.context = sce.getServletContext();
+		this.context.setAttribute("DataAccess", this.da);
 		
 		// Common json builder.
 		JsonbConfig config = new JsonbConfig()
 				.withPropertyNamingStrategy(PropertyNamingStrategy.IDENTITY)
 				.withNullValues(true);
-		ctx.setAttribute("Jsonb", JsonbBuilder.create(config));
+		this.context.setAttribute("Jsonb", JsonbBuilder.create(config));
 		
+		// Set global content.
+		setContent(this.context);
 		System.out.println("Crawler task is scheduled.");
 	}
 
@@ -84,4 +141,7 @@ public class CrawlerInitializer implements ServletContextListener {
 		System.out.println("Crawler task is removed.");
 	}
 
+	private void setContent(ServletContext ctx) {
+		ctx.setAttribute("IndexTitle", "玉米市场行情");
+	}
 }
