@@ -11,6 +11,14 @@ a {
     text-decoration:none;
 }
 
+a:link, a:visited, a:active {
+    color: darkblue;
+}
+
+a:hover {
+    color: blue;
+}
+
 .section_container {
     margin: 0 auto;
     max-width: 80%;
@@ -40,4 +48,8 @@ a {
     width: 70%;
     height:600px;
     margin: 0 auto;
+}
+
+.today_notice {
+	color: red;
 }

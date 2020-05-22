@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="com.nabiki.think.webgui.DataAccess, com.nabiki.think.webgui.utils.YumiItem" %>
+<%@ page import="com.nabiki.think.webgui.DataAccess, com.nabiki.think.webgui.utils.YumiItem, com.nabiki.think.webgui.utils.TodayNotice" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,6 +17,7 @@
 <hr/>
 <div class="section_container">
 <%
+	TodayNotice today = (TodayNotice)application.getAttribute("Notice");
 	DataAccess da = (DataAccess)application.getAttribute("DataAccess");
 	for (String cat : da.category().categoryNames()) {
 %>
@@ -27,7 +28,15 @@
         for (YumiItem item : da.category().category(cat)) {
 %>
             <li><a href="timeChart.jsp?queryId=<%= item.queryId%>">
-            <%= item.displayName%></a></li>
+            <%= item.displayName%></a>
+<%
+			if (today.notice(item.queryId)) {
+%>
+			<span class="today_notice">&#8730;</span>
+<%
+			}
+%>
+            </li>
 <%
         }
 %>

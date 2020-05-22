@@ -19,6 +19,7 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
 import com.nabiki.think.crawler.yumi.Yumi;
+import com.nabiki.think.webgui.utils.TodayNotice;
 
 @WebListener
 public class CrawlerInitializer implements ServletContextListener {
@@ -61,7 +62,7 @@ public class CrawlerInitializer implements ServletContextListener {
 			// Load old data for the first run.
 			try {
 				this.da.yumi(this.yumi.read());
-				setTimeStamp();
+				setAttributes();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -79,14 +80,16 @@ public class CrawlerInitializer implements ServletContextListener {
 			System.out.println("End fetching data.");
 			// Set new data into data access.
 			this.da.yumi(this.yumi.lastQuery());
-			
-			// Set last update time.
-			setTimeStamp();
+			// Set servlet context.
+			setAttributes();
 		}
 		
-		private void setTimeStamp() {
+		private void setAttributes() {
+			// Set last update time.
 			var timeStamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("更新于yyyy年M月d日H时m分s秒"));
 			context.setAttribute("UpdateTime", timeStamp);
+			// Set notice.
+			context.setAttribute("Notice", new TodayNotice(this.da.yumi()));
 		}
 	}
 	
