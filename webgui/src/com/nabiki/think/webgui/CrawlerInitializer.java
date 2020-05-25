@@ -18,7 +18,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import com.nabiki.think.crawler.yumi.Yumi;
+import com.nabiki.think.crawler.yumi.*;
 import com.nabiki.think.webgui.utils.TodayNotice;
 
 @WebListener
@@ -104,7 +104,13 @@ public class CrawlerInitializer implements ServletContextListener {
 	public CrawlerInitializer() {
 		try {
 			if (this.yumi == null)
-				this.yumi = new Yumi(Path.of(""));
+				this.yumi = new Yumi(Path.of(""), new YumiErrorListener() {
+
+					@Override
+					public void error(Exception e) {
+						e.printStackTrace();
+						
+					}});
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

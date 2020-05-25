@@ -32,6 +32,9 @@ public class QueryResultIO {
 	}
 
 	public void write(QueryResult rs) throws IOException {
+		if (rs == null)
+			return;
+		
 		try (FileOutputStream fos = new FileOutputStream(file(Integer.valueOf(rs.type)))) {
 			var str = jsonb().toJson(rs);	
 			fos.write(str.getBytes(Charset.forName("UTF-8")));

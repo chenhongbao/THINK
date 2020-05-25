@@ -13,17 +13,33 @@ public class Yumi {
 	private final YumiClient client;
 	private final QueryResultIO io;
 	private final Path confPath;
+	private final YumiErrorListener listener;
 	private final Map<Integer, QueryResult> cacheResult = new ConcurrentHashMap<>();
 	
-	public Yumi(Path root) throws IOException {
+	public Yumi(Path root, YumiErrorListener listener) throws IOException {
+		this.listener = listener;
 		this.confPath = Path.of(root.toAbsolutePath().toString(), "nabiki_config");
 		this.io = new QueryResultIO(Path.of(root.toAbsolutePath().toString(), "nabiki_data"));
 		this.client = new YumiClient(this.io);
 	}
 	
 	public void run() throws IOException {
-		for (var id : Utils.queryYumiIds(config())) {
-			var newRes = Utils.merge(client.query(id).result, this.io.read(id));
+		var ids = Utils.queryYumiIds(config());
+		for (var id : ids) {
+			// Fetch new data.
+			var rsp = client.query(id);
+			if (rsp == null) {
+				whenError(new Exception("Fail fetching data for query ID: " + id));
+				continue;
+			}
+			
+			// Merge two piece of data.
+			var newRes = Utils.merge(rsp.result, this.io.read(id));
+			if (newRes == null) {
+				whenError(new Exception("Fail merging results for query ID: " + id));
+				continue;
+			}
+			
 			this.io.write(newRes);
 			// Save result in cache.
 			this.cacheResult.put(id, newRes);
@@ -31,7 +47,16 @@ public class Yumi {
 			try {
 				Thread.sleep((long)(Math.random() * 10000));
 			} catch (InterruptedException e) {
+				whenError(e);
 			}
+		}
+	}
+	
+	private void whenError(Exception e) {
+		try {
+			if (this.listener != null)
+				this.listener.error(e);
+		} catch (Exception ex) {
 		}
 	}
 	

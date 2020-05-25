@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -36,6 +37,7 @@ public class YumiClient {
 	public QueryResponse query(int queryId) {
 		HttpRequest request =  HttpRequest.newBuilder()
                 .uri(URI.create(this.url + Integer.toString(queryId)))
+                .timeout(Duration.ofSeconds(5)) // Need a time out for every request or it may block forever.
                 .build();
 		
 		try {
@@ -44,6 +46,8 @@ public class YumiClient {
 			// Set query id to type.
 			r.result.type = Integer.toString(queryId);
 			return r;
+		} catch (HttpTimeoutException e) {
+			return null;
 		} catch (IOException | InterruptedException e) {
 			return null;
 		}

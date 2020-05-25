@@ -53,6 +53,12 @@ public class Utils {
 	 * @return merged result
 	 */
 	public static QueryResult merge(QueryResult r1, QueryResult r2) {
+		if (r1 != null && r2 == null)
+			return r1;
+		
+		if (r1 == null && r2 != null)
+			return r2;
+		
 		if (r1.type != null && r2.type != null && r1.type.compareTo(r2.type) != 0)
 			return null;
 
