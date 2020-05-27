@@ -7,18 +7,20 @@
 	<link type="text/css" rel="stylesheet" href="css/main.css">
 </head>
 <body>
+<%
+DataAccess da = (DataAccess)application.getAttribute("DataAccess");
+TodayNotice today = da.notice();
+%>
 <p align="center">
     <b>
         <span class="index_title"><%= (String)application.getAttribute("IndexTitle")%></span>
         <br /><br />
-        <span class="index_update_time"><%= (String)application.getAttribute("UpdateTime")%></span>
+        <span class="index_update_time"><%= da.updateTime()%></span>
     </b>
 </p>
 <hr/>
 <div class="section_container">
 <%
-	TodayNotice today = (TodayNotice)application.getAttribute("Notice");
-	DataAccess da = (DataAccess)application.getAttribute("DataAccess");
 	for (String cat : da.category().categoryNames()) {
 %>
     <div class="price_section">
