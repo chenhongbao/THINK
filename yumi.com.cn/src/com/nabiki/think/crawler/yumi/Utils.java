@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.nabiki.think.crawler.yumi.data.QueryResult;
@@ -88,11 +89,38 @@ public class Utils {
 				return o1.date.isBefore(o2.date) ? -1 : (o1.date.isAfter(o2.date) ? 1 : 0);
 			}
 		});
+		
+		// Validate date.
+		// Ensure all dates are in a continuous time line, day by day.
+		validateDate(r.list);
+		
+		// Set meta data.
 		r.name = r1.name != null ? r1.name : r2.name;
 		r.unit = r1.unit != null ? r1.unit : r2.unit;
 		r.type = r1.type != null ? r1.type : r2.type;
 
 		return r;
-
 	}
+	
+	// Input list must have been sorted by date.
+    protected static void validateDate(List<ValuePair> sorted) {
+        if (sorted.size() < 2)
+            return;
+
+        int index = sorted.size() - 1;
+        while (--index >= 0) {
+            var epoch0 = sorted.get(index).date.toEpochDay();
+            var epoch1 = sorted.get(index + 1).date.toEpochDay();
+
+            // Compare epoch day, back to front, find the diff larger than two weeks.
+            // Remove all values before the index because they are not continuous.
+            if (Math.abs(epoch1 - epoch0) > 14) {
+                index += 1;
+                break;
+            }
+        }
+
+        if (index > 0)
+            sorted.subList(0, index).clear();
+    }
 }
