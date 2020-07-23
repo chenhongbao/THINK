@@ -5,6 +5,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalTime;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -28,25 +31,35 @@ public class CrawlerInitializer implements ServletContextListener {
 			file.createNewFile();
 		if (!file.canWrite())
 			file.setWritable(true);
-		
+
 		return file;
 	}
-	
-	private void setConsole() {	
+
+	private void setConsole() {
 		try {
 			System.setOut(new TimePrintStream(new FileOutputStream(ensureFile("out.txt"), true)));
 			System.setErr(new TimePrintStream(new FileOutputStream(ensureFile("err.txt"), true)));
 		} catch (IOException e) {
 		}
 	}
-	
-	class CrawlerTask implements Runnable {
-		private final Yumi yumi;
-		private final DataAccess da;
+
+	class CrawlerTask extends TimerTask {
+		private Yumi yumi;
 		
-		CrawlerTask(Yumi yumi, DataAccess da) {
-			this.yumi = yumi;
-			this.da = da;
+		CrawlerTask() {
+		}
+
+		private void initYumi() {
+			try {
+				this.yumi = new Yumi(Path.of(""), new YumiErrorListener() {
+					@Override
+					public void error(Exception e) {
+						e.printStackTrace();
+					}
+				});
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 		@Override
@@ -56,73 +69,61 @@ public class CrawlerInitializer implements ServletContextListener {
 			if (23 <= now.getHour() || now.getHour() < 6)
 				return;
 			
+			// Init object.
+			initYumi();
+			
 			// Load old data for the first run.
 			try {
-				this.da.yumi(this.yumi.read());
+				if (da.yumi().size() == 0)
+					da.yumi(yumi.read());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
-			// Log activity.
-			System.out.println("Start fetching data from yumi.com.cn.");
-			
+
 			try {
-				yumi.run();
-			} catch (IOException e) {
+				var future = CompletableFuture.runAsync(() -> {
+					System.out.println("Start fetching data from yumi.com.cn.");
+					try {
+						yumi.run();
+						System.out.println("End fetching data.");
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
+				future.get(30, TimeUnit.MINUTES);
+				// Set new data into data access.
+				da.yumi(this.yumi.lastQuery());
+			} catch (Throwable e) {
 				e.printStackTrace();
 			}
-			
-			// Log activity.
-			System.out.println("End fetching data.");
-			// Set new data into data access.
-			this.da.yumi(this.yumi.lastQuery());
 		}
 	}
 	
-	private Yumi yumi;
-	private final DataAccess da;
-	private final CrawlerTask task;
-	private final ScheduledThreadPoolExecutor executor;
-	
+	private final DataAccess da = new DataAccess();
+	private final CrawlerTask task = new CrawlerTask();
+	private final Timer timer = new Timer();
+
 	// Servlet context.
 	private ServletContext context;
-	
-	public CrawlerInitializer() {
-		try {
-			if (this.yumi == null)
-				this.yumi = new Yumi(Path.of(""), new YumiErrorListener() {
 
-					@Override
-					public void error(Exception e) {
-						e.printStackTrace();
-						
-					}});
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		this.da = new DataAccess();
-		this.task = new CrawlerTask(this.yumi, this.da);
-		this.executor = new ScheduledThreadPoolExecutor(20);
-		
+	public CrawlerInitializer() {
 		// Set console file.
 		setConsole();
 	}
 
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		this.executor.scheduleAtFixedRate(this.task, 0, 1, TimeUnit.HOURS);
-		
+		this.timer.scheduleAtFixedRate(this.task, 0, TimeUnit.HOURS.toMillis(1));
+
 		// Register data object.
 		this.context = sce.getServletContext();
 		this.context.setAttribute("DataAccess", this.da);
-		
+
 		// Common json builder.
-		JsonbConfig config = new JsonbConfig()
-				.withPropertyNamingStrategy(PropertyNamingStrategy.IDENTITY)
+		JsonbConfig config = new JsonbConfig().withPropertyNamingStrategy(PropertyNamingStrategy.IDENTITY)
 				.withNullValues(true);
 		this.context.setAttribute("Jsonb", JsonbBuilder.create(config));
-		
+
 		// Set global content.
 		setContent(this.context);
 		System.out.println("Crawler task is scheduled.");
@@ -130,10 +131,8 @@ public class CrawlerInitializer implements ServletContextListener {
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
-		this.executor.remove(this.task);
-		this.executor.shutdownNow();
-		
-		System.out.println("Crawler task is removed.");
+		this.timer.cancel();
+		System.out.println("Crawler task is stopped.");
 	}
 
 	private void setContent(ServletContext ctx) {
