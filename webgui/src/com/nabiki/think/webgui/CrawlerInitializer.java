@@ -62,23 +62,24 @@ public class CrawlerInitializer implements ServletContextListener {
 		}
 
 		@Override
-		public void run() {
-			// Don't fetch data at night.
-			var now = LocalTime.now();
-			if (23 <= now.getHour() || now.getHour() < 6)
-				return;
-			
-			// Init object.
-			initYumi();
-			
+		public void run() {						
 			// Load old data for the first run.
 			try {
-				if (da.yumi().size() == 0)
+				if (da.yumi().size() == 0) {
+					// Init object.
+					initYumi();
 					da.yumi(yumi.read());
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 
+			// Don't fetch data at night.
+			var now = LocalTime.now();
+			if (23 <= now.getHour() || now.getHour() < 6) {
+				return;
+			}
+			
 			try {
 				var future = CompletableFuture.runAsync(() -> {
 					System.out.println("Start fetching data from yumi.com.cn.");
