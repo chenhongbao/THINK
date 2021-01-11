@@ -21,6 +21,7 @@ QueryResult result = da.yumi().get(queryId);
 <%if (result.list.size() > 0) {
 	Pattern p = Pattern.compile("[0-9]+(\\.[0-9]+)?");
 	Double prev = null;
+	int outCnt = 0;
 	for (int idx = 0; idx < result.list.size(); ++idx) {
 		Double value = null;
 		String dateStr = null;
@@ -36,11 +37,15 @@ QueryResult result = da.yumi().get(queryId);
 			dateStr = result.list.get(idx).date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		} catch (Throwable ignored) {
 		}
-		out.print("{date:Date.parse(\"" + dateStr + "\"), value:" + value + "}");
-		// Last element has no comma.
-		if (idx < result.list.size() - 1) {
+		if (value == 0.0D) {
+			continue;
+		}
+		// First element has no prefix comma.
+		if (outCnt > 0) {
 			out.print(",");
 		}
+		out.print("{date:Date.parse(\"" + dateStr + "\"), value:" + value + "}");
+		++outCnt;
 	}
 }%>
 	];
